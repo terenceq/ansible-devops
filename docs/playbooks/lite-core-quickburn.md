@@ -8,6 +8,7 @@ This master playbook will drive the following playbooks in sequence:
     - [Install SLS](dependencies.md#install-sls) (10 minutes)
 - Install & configure MAS:
     - [Configure Cloud Internet Services integration](mas.md#cloud-internet-services-integration) (Optional, 1 minute)
+    - Generate MAS Workspace Configuration (1 minute)
     - [Install & configure MAS](mas.md#install-mas) (15 minutes)
 
 All timings are estimates, see the individual pages for each of these playbooks for more information.  Due to the size limtations of QuickBurn clusters a full MAS stack is not possible.
@@ -29,6 +30,7 @@ All timings are estimates, see the individual pages for each of these playbooks 
 - `MAS_CATALOG_SOURCE` to override the use of the IBM Operator Catalog as the catalog source
 - `MAS_CHANNEL` to override the use of the `8.x` channel
 - `MAS_DOMAIN` to set a custom domain for the MAS installation
+- `MAS_UPGRADE_STRATEGY` to override the use of Manual upgrade strategy.
 - `MAS_ICR_CP` to override the value MAS uses for the IBM Entitled Registry (`cp.icr.io/cp`)
 - `MAS_ICR_CPOPEN` to override the value MAS uses for the IBM Open Registry (`icr.io/cpopen`)
 - `MAS_ENTITLEMENT_USERNAME` to override the username MAS uses to access content in the IBM Entitled Registry
