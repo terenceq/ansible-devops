@@ -291,33 +291,6 @@
       }
     },
     {
-      "type": "Microsoft.Resources/deployments",
-      "name": "Nested-Role-Assignment-ManagedIdentity",
-      "apiVersion": "2021-04-01",
-      "resourceGroup": "[parameters('publicDomainResourceGroup')]",
-      "subscriptionId": "[subscription().subscriptionId]",
-      "properties": {
-        "mode": "Incremental",
-        "template": {
-          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-          "contentVersion": "1.0.0.0",
-          "resources": [
-            {
-              "type": "Microsoft.Authorization/roleAssignments",
-              "apiVersion": "2020-04-01-preview",
-              "name": "[variables('readerRoleAssignmentId')]",
-              "properties": {
-                "roleDefinitionId": "[variables('readerRoleDefinitionId')]",
-                "principalId": "[reference(variables('managedIdentityName')).principalId]",
-                "principalType": "ServicePrincipal",
-                "scope": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', parameters('publicDomainResourceGroup'))]"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
       "type": "Microsoft.Network/networkSecurityGroups",
       "apiVersion": "2020-05-01",
       "name": "[variables('networkSecurityGroupName')]",
