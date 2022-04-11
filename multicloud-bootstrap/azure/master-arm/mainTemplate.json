@@ -262,6 +262,19 @@
   },
   "resources": [
     {
+      "apiVersion": "2020-06-01",
+      "name": "pid-f5dbab53-c8da-4489-8d6b-9e8c62f7c150",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "resources": []
+        }
+      }
+    },
+    {
       "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
       "name": "[variables('managedIdentityName')]",
       "apiVersion": "2018-11-30",
