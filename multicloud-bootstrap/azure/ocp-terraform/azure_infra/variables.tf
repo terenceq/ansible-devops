@@ -15,6 +15,10 @@ variable "azure-tenant-id" {
 
 }
 
+variable "tracking-guid" {
+  default = "f5dbab53-c8da-4489-8d6b-9e8c62f7c150"
+}
+
 variable "region" {
   default = "centralus"
 }

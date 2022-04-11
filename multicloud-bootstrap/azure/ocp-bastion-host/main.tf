@@ -8,6 +8,8 @@ terraform {
   }
 }
 provider "azurerm" {
+  # new stuff for ISV attribution
+  partner_id = var.tracking-guid
   features {}
 }
 
