@@ -23,6 +23,3 @@ variable "seller_compute_gallery" {
 variable "seller_image_version" {
   description = "Seller image version."
 }
-variable "tracking-guid" {
-  default = "f5dbab53-c8da-4489-8d6b-9e8c62f7c150"
-}
