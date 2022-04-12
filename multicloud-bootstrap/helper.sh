@@ -146,7 +146,6 @@ split_ocp_api_url() {
   oldIFS="$IFS"
   IFS='.'
   for i in $apiurl; do
-    # echo $i
     if [[ $COUNTER -eq 1 ]]; then
       CLUSTER_NAME=$i
     elif [[ $COUNTER -gt 1 ]]; then
@@ -159,7 +158,6 @@ split_ocp_api_url() {
     COUNTER=$((COUNTER + 1))
   done
   IFS="$oldIFS"
-  # echo $CLUSTER_NAME
   BASE_DOMAIN=${BASE_DOMAIN//-/.}
   ## Remove any possible port number provided by user
   strindex() {

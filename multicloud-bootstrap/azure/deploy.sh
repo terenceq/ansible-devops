@@ -13,31 +13,18 @@ export MONGODB_STORAGE_CLASS=gp2
 export KAFKA_STORAGE_CLASS=gp2
 # Service principle variables
 SP_NAME="http://${CLUSTER_NAME}-sp"
-#IAM_USER_NAME="masocp-user-${RANDOM_STR}"
 # SLS variables 
 export SLS_STORAGE_CLASS=gp2
 # BAS variables 
 export BAS_META_STORAGE=gp2
 
-# Retrieve SSH public key
-#TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
-#SSH_PUB_KEY=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" –v http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key)
-
 log "Below are Cloud specific deployment parameters,"
-#echo " AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION"
-#echo " MASTER_INSTANCE_TYPE: $MASTER_INSTANCE_TYPE"
-#echo " WORKER_INSTANCE_TYPE: $WORKER_INSTANCE_TYPE"
-echo " MONGODB_STORAGE_CLASS: $MONGODB_STORAGE_CLASS"
-echo " KAFKA_STORAGE_CLASS: $KAFKA_STORAGE_CLASS"
-echo " SP_NAME: $SP_NAME"
-#echo " IAM_USER_NAME: $IAM_USER_NAME"
-echo " SLS_STORAGE_CLASS: $SLS_STORAGE_CLASS"
-echo " BAS_META_STORAGE: $BAS_META_STORAGE"
-echo " SSH_PUB_KEY: $SSH_PUB_KEY"
-
-# Update resource group with basic details
-az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASCloudAutomationVersion=${MAS_CLOUD_AUTOMATION_VERSION} > /dev/null
-az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags ClusterUniqueString=${RANDOM_STR} > /dev/null
+log " MONGODB_STORAGE_CLASS: $MONGODB_STORAGE_CLASS"
+log " KAFKA_STORAGE_CLASS: $KAFKA_STORAGE_CLASS"
+log " SP_NAME: $SP_NAME"
+log " SLS_STORAGE_CLASS: $SLS_STORAGE_CLASS"
+log " BAS_META_STORAGE: $BAS_META_STORAGE"
+log " SSH_PUB_KEY: $SSH_PUB_KEY"
 
 ## Download files from S3 bucket
 # Download MAS license
@@ -63,15 +50,11 @@ line=$(head -n 1 entitlement.lic)
 set -- $line
 hostname=$2
 hostid=$3
-echo " SLS_HOSTNAME: $hostname"
-echo " SLS_HOST_ID: $hostid"
+log " SLS_HOSTNAME: $hostname"
+log " SLS_HOST_ID: $hostid"
 #SLS Instance name
 export SLS_INSTANCE_NAME="$hostname"
 export SLS_LICENSE_ID="$hostid"
-
-# Add unique id as a tag to the resource group
-#az tag create --resource-id /subscriptions/$AZURE_SUBSC_ID/resourcegroups/$RG_NAME --tags clusterUniqueString=$RANDOM_STR
-#log "Tag clusterUniqueString=$RANDOM_STR added to the resource group $RG_NAME"
 
 # Deploy OCP cluster and bastion host
 if [[ $OPENSHIFT_USER_PROVIDE == "false" ]]; then
@@ -120,18 +103,6 @@ if [[ $OPENSHIFT_USER_PROVIDE == "false" ]]; then
   fi
   set -e
   log "OCP cluster Terraform configuration backed up at $DEPLOYMENT_CONTEXT_UPLOAD_PATH in file $CLUSTER_NAME.zip"
-
-  # Update resource group with OCP cluster details
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags OpenShiftConsoleUrl="https://console-openshift-console.apps.masocp-${RANDOM_STR}.${BASE_DOMAIN}" > /dev/null
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags OpenShiftApiUrl="https://api.masocp-${RANDOM_STR}.${BASE_DOMAIN}" > /dev/null
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags OpenShiftUser=${OPENSHIFT_USER} > /dev/null
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags OpenShiftPassword=${OPENSHIFT_PASSWORD} > /dev/null
-
-  # Update resource group with MAS details
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASInitialSetupUrl="https://admin.mas-${RANDOM_STR}.apps.masocp-${RANDOM_STR}.${BASE_DOMAIN}/initialsetup" > /dev/null
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASAdminUrl="https://admin.mas-${RANDOM_STR}.apps.masocp-${RANDOM_STR}.${BASE_DOMAIN}" > /dev/null
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASWorkspaceUrl="https://wsmasocp.home.mas-${RANDOM_STR}.apps.masocp-${RANDOM_STR}.${BASE_DOMAIN}" > /dev/null
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASCredentials="<Get it from OCP secret 'mas-[uniqstr]-credentials-superuser' in namespace 'mas-mas-[uniqstr]-core'>" > /dev/null
 else
   log "==== Existing OCP cluster provided, skipping the cluster creation, Bastion host creation and S3 upload of deployment context ===="
 fi
