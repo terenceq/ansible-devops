@@ -44,19 +44,19 @@ fi
 
 # check if CNAME and A records already exist for the given MAS instance being deployed
 # A) Check if the DNS zone A records already exists wtih $UNIQ_STR
-A_RECS=$(az network dns record-set a list -g $BASE_DOMAIN_RG_NAME -z $BASE_DOMAIN | jq ".[] | select(.name == \"*.apps.masocp-$UNIQ_STR\").name" | tr -d '"')
+#A_RECS=$(az network dns record-set a list -g $BASE_DOMAIN_RG_NAME -z $BASE_DOMAIN | jq ".[] | select(.name == \"*.apps.masocp-$UNIQ_STR\").name" | tr -d '"')
 
-if [[ -n $A_RECS ]]; then
-    log "ERROR: Record set with $UNIQ_STR already exists as $A_RECS"
-    SCRIPT_STATUS=25
-fi
+#if [[ -n $A_RECS ]]; then
+#    log "ERROR: Record set with $UNIQ_STR already exists as $A_RECS"
+#    SCRIPT_STATUS=25
+#fi
 
 # B) Check if the DNS zone CNAME records already exists wtih $UNIQ_STR
-CNAME_RECS=$(az network dns record-set cname list -g $BASE_DOMAIN_RG_NAME -z $BASE_DOMAIN | jq ".[] | select(.name == \"api.masocp-$UNIQ_STR\").name" | tr -d '"')
-if [[ -n $CNAME_RECS ]]; then
-    log "ERROR: Record set with $UNIQ_STR already exists as $CNAME_REC"
-    SCRIPT_STATUS=25
-fi
+#CNAME_RECS=$(az network dns record-set cname list -g $BASE_DOMAIN_RG_NAME -z $BASE_DOMAIN | jq ".[] | select(.name == \"api.masocp-$UNIQ_STR\").name" | tr -d '"')
+#if [[ -n $CNAME_RECS ]]; then
+#    log "ERROR: Record set with $UNIQ_STR already exists as $CNAME_REC"
+#    SCRIPT_STATUS=25
+#fi
 
 # JDBC CFT inputs validation and connection test
 if [[ $DEPLOY_MANAGE == "true" ]]; then
