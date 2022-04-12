@@ -2,7 +2,7 @@
 
 # Helper functions
 log() {
-  echo "$(date +%a-%d-%b-%Y-%H-%M-%S) $1"
+  echo "$(date '+%Y-%m-%d %H:%M:%S') $1"
 }
 
 # Retrieve MAS CA certificate
