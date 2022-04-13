@@ -316,7 +316,7 @@ if [[ $PRE_VALIDATION == "pass" ]]; then
   log " OPENSHIFT_USER_PROVIDE=$OPENSHIFT_USER_PROVIDE"
 
   # Create Red Hat pull secret
-  log "$OCP_PULL_SECRET" > $OPENSHIFT_PULL_SECRET_FILE_PATH
+  echo "$OCP_PULL_SECRET" > $OPENSHIFT_PULL_SECRET_FILE_PATH
   chmod 600 $OPENSHIFT_PULL_SECRET_FILE_PATH
 
   # Call cloud specific script
