@@ -46,3 +46,9 @@ ibm_common_services_subscription_labels:
   - ibm-namespace-scope-operator.ibm-common-services
   - ibm-odlm.ibm-common-services
   - ibm-licensing-operator-app.ibm-common-services
+
+# hyperscaler annotations
+# -----------------------------------------------------------------------------
+hyperscaler_format: "{{ lookup('env', 'MAS_HYPERSCALER_FORMAT') | default(None) }}"
+hyperscaler_provider: "{{ lookup('env', 'MAS_HYPERSCALER_PROVIDER') | default(None) }}"
+hyperscaler_channel: "{{ lookup('env', 'MAS_HYPERSCALER_CHANNEL') | default(None) }}"

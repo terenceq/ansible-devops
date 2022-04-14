@@ -14,7 +14,7 @@ export KAFKA_STORAGE_CLASS=gp2
 # IAM variables
 IAM_POLICY_NAME="masocp-policy-${RANDOM_STR}"
 IAM_USER_NAME="masocp-user-${RANDOM_STR}"
-# SLS variables 
+# SLS variables
 export SLS_STORAGE_CLASS=gp2
 # CP4D variables
 export CPD_BLOCK_STORAGE_CLASS=gp2
@@ -170,7 +170,7 @@ EOT
     exit 22
   fi
   set -e
- 
+
   # Backup Terraform configuration
   cd $GIT_REPO_HOME
   rm -rf /tmp/mas-multicloud
@@ -208,11 +208,16 @@ log "==== mas_devops collection installation started ===="
 ansible-galaxy collection install ibm.mas_devops
 log "==== mas_devops collection installation completed ===="
 
+## Temporarily copying the roles which aren't updated in the collection
+ls /root/.ansible/collections/ansible_collections/ibm/mas_devops/roles
+cp -r /root/ansible-devops/ibm/mas_devops/roles/* /root/.ansible/collections/ansible_collections/ibm/mas_devops/roles/
+ls /root/.ansible/collections/ansible_collections/ibm/mas_devops/roles
+
 ## Configure OCP cluster
 log "==== OCP cluster configuration (Cert Manager and SBO) started ===="
 cd $GIT_REPO_HOME/../ibm/mas_devops/playbooks
 set +e
-ansible-playbook ocp/configure-ocp.yml 
+ansible-playbook ocp/configure-ocp.yml
 if [[ $? -ne 0 ]]; then
   # One reason for this failure is catalog sources not having required state information, so recreate the catalog-operator pod
   # https://bugzilla.redhat.com/show_bug.cgi?id=1807128
@@ -242,7 +247,7 @@ cp $GIT_REPO_HOME/entitlement.lic $MAS_CONFIG_DIR
 
 ## Deploy Amqstreams
 # log "==== Amq streams deployment started ===="
-# ansible-playbook install-amqstream.yml  
+# ansible-playbook install-amqstream.yml
 # log "==== Amq streams deployment completed ===="
 
 # SLS Deployment
@@ -294,6 +299,35 @@ fi
 
 ## Deploy MAS
 log "==== MAS deployment started ===="
+## Evalute custom annotations to set with reference from aws-product-codes.config
+# product_code_metadata="$(curl http://169.254.169.254/latest/meta-data/product-codes)"
+product_code_metadata="vrxqov1ml7fjwasbi7pkw4m3"
+if [[ -n "$product_code_metadata" ]];then
+  log "Product Code: $product_code_metadata"
+  log "Checking for product type corrosponding to $product_code_metadata from "
+  aws_product_codes_config_file="$(cd "$(dirname "$0")" && pwd)/aws-product-codes.config"
+  if grep -E "^$product_code_metadata:" $aws_product_codes_config_file 1>/dev/null 2>&1;then
+    product_type="$(grep -E "^$product_code_metadata:" $aws_product_codes_config_file | cut -f 3 -d ":")"
+    if [[ $product_type == "byol" ]];then
+      export MAS_HYPERSCALER_PROVIDER="aws"
+      export MAS_HYPERSCALER_CHANNEL="ibm"
+      export MAS_HYPERSCALER_FORMAT=$product_type
+    elif [[ $product_type == "privatepublic" ]];then
+      export MAS_HYPERSCALER_PROVIDER="aws"
+      export MAS_HYPERSCALER_CHANNEL="ibm"
+      export MAS_HYPERSCALER_FORMAT=$product_type
+    else
+      log "Invalid product type : $product_type"
+      exit 27
+    fi
+  else
+    log "Product code not found in file $aws_product_codes_config_file"
+    exit 27
+  fi
+else
+  log "MAS product code not found, skipping custom annotations suite_install"
+fi
+# Above MAS_HYPERSCALER_* variables are exported for Kind: Suite in suite_install role called from install-suite.yaml
 ansible-playbook mas/install-suite.yml
 log "==== MAS deployment completed ===="
 
@@ -303,7 +337,7 @@ if [[ $DEPLOY_MANAGE == "true" ]]; then
   log "==== MAS Manage deployment started ===="
   ansible-playbook mas/install-app.yml
   log "==== MAS Manage deployment completed ===="
-  
+
   # Configure app to use the DB
   log "==== MAS Manage configure app started ===="
   ansible-playbook mas/configure-app.yml
