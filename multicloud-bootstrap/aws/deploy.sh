@@ -318,11 +318,11 @@ if [[ -n "$product_code_metadata" ]];then
       export MAS_HYPERSCALER_FORMAT=$product_type
     else
       log "Invalid product type : $product_type"
-      exit 27
+      exit 28
     fi
   else
     log "Product code not found in file $aws_product_codes_config_file"
-    exit 27
+    exit 28
   fi
 else
   log "MAS product code not found, skipping custom annotations suite_install"
