@@ -304,8 +304,8 @@ log "==== MAS deployment started ===="
 product_code_metadata="vrxqov1ml7fjwasbi7pkw4m3"
 if [[ -n "$product_code_metadata" ]];then
   log "Product Code: $product_code_metadata"
-  log "Checking for product type corrosponding to $product_code_metadata from "
-  aws_product_codes_config_file="$(cd "$(dirname "$0")" && pwd)/aws-product-codes.config"
+  aws_product_codes_config_file="$GIT_REPO_HOME/aws/aws-product-codes.config"
+  log "Checking for product type corrosponding to $product_code_metadata from file $aws_product_codes_config_file"
   if grep -E "^$product_code_metadata:" $aws_product_codes_config_file 1>/dev/null 2>&1;then
     product_type="$(grep -E "^$product_code_metadata:" $aws_product_codes_config_file | cut -f 3 -d ":")"
     if [[ $product_type == "byol" ]];then
