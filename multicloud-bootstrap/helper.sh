@@ -121,7 +121,9 @@ mark_provisioning_failed() {
   elif [[ $retcode -eq 26 ]]; then
     export STATUS_MSG="You have opted for email notification but did not specify SendGrid API key and/or recipient email address."
   elif [[ $retcode -eq 27 ]]; then
-    export STATUS_MSG="Invalid product code or product type"
+    export STATUS_MSG="Failure in creating azurefiles storage class."
+  elif [[ $retcode -eq 28 ]]; then
+    export STATUS_MSG="Failure in creating azurefiles storage class."
   fi
   export MESSAGE_TEXT=NA
   export OPENSHIFT_CLUSTER_CONSOLE_URL=NA
