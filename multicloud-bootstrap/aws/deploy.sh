@@ -14,7 +14,7 @@ export KAFKA_STORAGE_CLASS=gp2
 # IAM variables
 IAM_POLICY_NAME="masocp-policy-${RANDOM_STR}"
 IAM_USER_NAME="masocp-user-${RANDOM_STR}"
-# SLS variables 
+# SLS variables
 export SLS_STORAGE_CLASS=gp2
 # CP4D variables
 export CPD_BLOCK_STORAGE_CLASS=gp2
@@ -24,16 +24,16 @@ TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-meta
 SSH_PUB_KEY=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" â€“v http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key)
 
 log "Below are Cloud specific deployment parameters,"
-echo " AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION"
-echo " MASTER_INSTANCE_TYPE: $MASTER_INSTANCE_TYPE"
-echo " WORKER_INSTANCE_TYPE: $WORKER_INSTANCE_TYPE"
-echo " MONGODB_STORAGE_CLASS: $MONGODB_STORAGE_CLASS"
-echo " KAFKA_STORAGE_CLASS: $KAFKA_STORAGE_CLASS"
-echo " IAM_POLICY_NAME: $IAM_POLICY_NAME"
-echo " IAM_USER_NAME: $IAM_USER_NAME"
-echo " SLS_STORAGE_CLASS: $SLS_STORAGE_CLASS"
-echo " CPD_BLOCK_STORAGE_CLASS: $CPD_BLOCK_STORAGE_CLASS"
-echo " SSH_PUB_KEY: $SSH_PUB_KEY"
+log " AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION"
+log " MASTER_INSTANCE_TYPE: $MASTER_INSTANCE_TYPE"
+log " WORKER_INSTANCE_TYPE: $WORKER_INSTANCE_TYPE"
+log " MONGODB_STORAGE_CLASS: $MONGODB_STORAGE_CLASS"
+log " KAFKA_STORAGE_CLASS: $KAFKA_STORAGE_CLASS"
+log " IAM_POLICY_NAME: $IAM_POLICY_NAME"
+log " IAM_USER_NAME: $IAM_USER_NAME"
+log " SLS_STORAGE_CLASS: $SLS_STORAGE_CLASS"
+log " CPD_BLOCK_STORAGE_CLASS: $CPD_BLOCK_STORAGE_CLASS"
+log " SSH_PUB_KEY: $SSH_PUB_KEY"
 
 if [[ -f entitlement.lic ]]; then
   chmod 600 entitlement.lic
@@ -54,12 +54,12 @@ if [[ -f sls.crt ]]; then
 fi
 # Download UDS certificate
 cd $GIT_REPO_HOME
-if [[ ${BAS_PUB_CERT_URL,,} =~ ^https? ]]; then
+if [[ ${UDS_PUB_CERT_URL,,} =~ ^https? ]]; then
   log "Downloading BAS certificate from HTTP URL"
-  wget "$BAS_PUB_CERT_URL" -O bas.crt
-elif [[ ${BAS_PUB_CERT_URL,,} =~ ^s3 ]]; then
+  wget "$UDS_PUB_CERT_URL" -O bas.crt
+elif [[ ${UDS_PUB_CERT_URL,,} =~ ^s3 ]]; then
   log "Downloading BAS certificate from S3 URL"
-  aws s3 cp "$BAS_PUB_CERT_URL" bas.crt
+  aws s3 cp "$UDS_PUB_CERT_URL" bas.crt
 fi
 if [[ -f bas.crt ]]; then
   chmod 600 bas.crt
@@ -70,8 +70,8 @@ line=$(head -n 1 entitlement.lic)
 set -- $line
 hostname=$2
 hostid=$3
-echo " SLS_HOSTNAME: $hostname"
-echo " SLS_HOST_ID: $hostid"
+log " SLS_HOSTNAME: $hostname"
+log " SLS_HOST_ID: $hostid"
 #SLS Instance name
 export SLS_INSTANCE_NAME="$hostname"
 export SLS_LICENSE_ID="$hostid"
@@ -170,7 +170,7 @@ EOT
     exit 22
   fi
   set -e
- 
+
   # Backup Terraform configuration
   cd $GIT_REPO_HOME
   rm -rf /tmp/mas-multicloud
@@ -208,7 +208,7 @@ oc set data secret/pull-secret -n openshift-config --from-file=/tmp/.dockerconfi
 log "==== OCP cluster configuration (Cert Manager and SBO) started ===="
 cd $GIT_REPO_HOME/../ibm/mas_devops/playbooks
 set +e
-ansible-playbook ocp/configure-ocp.yml 
+ansible-playbook ocp/configure-ocp.yml
 if [[ $? -ne 0 ]]; then
   # One reason for this failure is catalog sources not having required state information, so recreate the catalog-operator pod
   # https://bugzilla.redhat.com/show_bug.cgi?id=1807128
@@ -238,7 +238,7 @@ cp $GIT_REPO_HOME/entitlement.lic $MAS_CONFIG_DIR
 
 ## Deploy Amqstreams
 # log "==== Amq streams deployment started ===="
-# ansible-playbook install-amqstream.yml  
+# ansible-playbook install-amqstream.yml
 # log "==== Amq streams deployment completed ===="
 
 # SLS Deployment
@@ -256,7 +256,7 @@ else
 fi
 
 #UDS Deployment
-if [[ (-z $BAS_API_KEY) || (-z $BAS_ENDPOINT_URL) || (-z $BAS_PUB_CERT_URL) ]]
+if [[ (-z $UDS_API_KEY) || (-z $UDS_ENDPOINT_URL) || (-z $UDS_PUB_CERT_URL) ]]
 then
     ## Deploy UDS
     log "==== UDS deployment started ===="
@@ -299,7 +299,7 @@ if [[ $DEPLOY_MANAGE == "true" ]]; then
   log "==== MAS Manage deployment started ===="
   ansible-playbook mas/install-app.yml
   log "==== MAS Manage deployment completed ===="
-  
+
   # Configure app to use the DB
   log "==== MAS Manage configure app started ===="
   ansible-playbook mas/configure-app.yml
