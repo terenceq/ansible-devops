@@ -203,16 +203,6 @@ jq '.auths |= . + {"cp.icr.io": { "auth" : "$encodedEntitlementKey", "email" : "
 envsubst < /tmp/dockerconfig.json > /tmp/.dockerconfigjson
 oc set data secret/pull-secret -n openshift-config --from-file=/tmp/.dockerconfigjson
 
-## Installing the collection from ansible-galaxy
-log "==== mas_devops collection installation started ===="
-ansible-galaxy collection install ibm.mas_devops
-log "==== mas_devops collection installation completed ===="
-
-## Temporarily copying the roles which aren't updated in the collection
-ls /root/.ansible/collections/ansible_collections/ibm/mas_devops/roles
-cp -r /root/ansible-devops/ibm/mas_devops/roles/* /root/.ansible/collections/ansible_collections/ibm/mas_devops/roles/
-ls /root/.ansible/collections/ansible_collections/ibm/mas_devops/roles
-
 ## Configure OCP cluster
 log "==== OCP cluster configuration (Cert Manager and SBO) started ===="
 cd $GIT_REPO_HOME/../ibm/mas_devops/playbooks
