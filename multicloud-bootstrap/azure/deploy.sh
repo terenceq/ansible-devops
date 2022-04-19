@@ -14,9 +14,9 @@ export KAFKA_STORAGE_CLASS=gp2
 # Service principle variables
 SP_NAME="http://${CLUSTER_NAME}-sp"
 #IAM_USER_NAME="masocp-user-${RANDOM_STR}"
-# SLS variables 
+# SLS variables
 export SLS_STORAGE_CLASS=gp2
-# BAS variables 
+# BAS variables
 export BAS_META_STORAGE=gp2
 
 # Retrieve SSH public key
@@ -36,8 +36,8 @@ echo " BAS_META_STORAGE: $BAS_META_STORAGE"
 echo " SSH_PUB_KEY: $SSH_PUB_KEY"
 
 # Update resource group with basic details
-az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASCloudAutomationVersion=${MAS_CLOUD_AUTOMATION_VERSION} > /dev/null
-az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags ClusterUniqueString=${RANDOM_STR} > /dev/null
+az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASCloudAutomationVersion=${MAS_CLOUD_AUTOMATION_VERSION} >/dev/null
+az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags ClusterUniqueString=${RANDOM_STR} >/dev/null
 
 ## Download files from S3 bucket
 # Download MAS license
@@ -103,7 +103,7 @@ if [[ $OPENSHIFT_USER_PROVIDE == "false" ]]; then
   #   exit 22
   # fi
   # set -e
- 
+
   # Backup Terraform configuration
   rm -rf /tmp/ansible-devops
   mkdir /tmp/ansible-devops
@@ -122,21 +122,21 @@ if [[ $OPENSHIFT_USER_PROVIDE == "false" ]]; then
   log "OCP cluster Terraform configuration backed up at $DEPLOYMENT_CONTEXT_UPLOAD_PATH in file $CLUSTER_NAME.zip"
 
   # Update resource group with OCP cluster details
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags OpenShiftConsoleUrl="https://console-openshift-console.apps.masocp-${RANDOM_STR}.${BASE_DOMAIN}" > /dev/null
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags OpenShiftApiUrl="https://api.masocp-${RANDOM_STR}.${BASE_DOMAIN}" > /dev/null
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags OpenShiftUser=${OPENSHIFT_USER} > /dev/null
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags OpenShiftPassword=${OPENSHIFT_PASSWORD} > /dev/null
+  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags OpenShiftConsoleUrl="https://console-openshift-console.apps.masocp-${RANDOM_STR}.${BASE_DOMAIN}" >/dev/null
+  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags OpenShiftApiUrl="https://api.masocp-${RANDOM_STR}.${BASE_DOMAIN}" >/dev/null
+  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags OpenShiftUser=${OPENSHIFT_USER} >/dev/null
+  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags OpenShiftPassword=${OPENSHIFT_PASSWORD} >/dev/null
 
   # Update resource group with MAS details
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASInitialSetupUrl="https://admin.mas-${RANDOM_STR}.apps.masocp-${RANDOM_STR}.${BASE_DOMAIN}/initialsetup" > /dev/null
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASAdminUrl="https://admin.mas-${RANDOM_STR}.apps.masocp-${RANDOM_STR}.${BASE_DOMAIN}" > /dev/null
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASWorkspaceUrl="https://wsmasocp.home.mas-${RANDOM_STR}.apps.masocp-${RANDOM_STR}.${BASE_DOMAIN}" > /dev/null
-  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASCredentials="<Get it from OCP secret 'mas-[uniqstr]-credentials-superuser' in namespace 'mas-mas-[uniqstr]-core'>" > /dev/null
+  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASInitialSetupUrl="https://admin.mas-${RANDOM_STR}.apps.masocp-${RANDOM_STR}.${BASE_DOMAIN}/initialsetup" >/dev/null
+  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASAdminUrl="https://admin.mas-${RANDOM_STR}.apps.masocp-${RANDOM_STR}.${BASE_DOMAIN}" >/dev/null
+  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASWorkspaceUrl="https://wsmasocp.home.mas-${RANDOM_STR}.apps.masocp-${RANDOM_STR}.${BASE_DOMAIN}" >/dev/null
+  az tag update --operation merge --resource-id /subscriptions/${AZURE_SUBSC_ID}/resourceGroups/${RG_NAME} --tags MASCredentials="<Get it from OCP secret 'mas-[uniqstr]-credentials-superuser' in namespace 'mas-mas-[uniqstr]-core'>" >/dev/null
 else
   log "==== Existing OCP cluster provided, skipping the cluster creation, Bastion host creation and S3 upload of deployment context ===="
 fi
 
-#Run ansible playbook to create azurefiles storage class 
+#Run ansible playbook to create azurefiles storage class
 log "=== Creating azurefiles-standard Storage class on OCP cluster ==="
 cd $GIT_REPO_HOME/azure
 ansible-playbook configure-azurefiles.yml
@@ -144,4 +144,116 @@ retcode=$?
 if [[ $retcode -ne 0 ]]; then
   log "Failed to create azurefiles-standard storageclass"
   exit 27
+fi
+
+log "==== Adding ER key details to OCP default pull-secret ===="
+cd /tmp
+# Login to OCP cluster
+oc login -u $OCP_USERNAME -p $OCP_PASSWORD --server=https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443
+oc extract secret/pull-secret -n openshift-config --keys=.dockerconfigjson --to=. --confirm
+export encodedEntitlementKey=$(echo cp:$SLS_ENTITLEMENT_KEY | tr -d '\n' | base64 -w0)
+##export encodedEntitlementKey=$(echo cp:$SLS_ENTITLEMENT_KEY | base64 -w0)
+export emailAddress=$(cat .dockerconfigjson | jq -r '.auths["cloud.openshift.com"].email')
+jq '.auths |= . + {"cp.icr.io": { "auth" : "$encodedEntitlementKey", "email" : "$emailAddress"}}' .dockerconfigjson >/tmp/dockerconfig.json
+envsubst </tmp/dockerconfig.json >/tmp/.dockerconfigjson
+oc set data secret/pull-secret -n openshift-config --from-file=/tmp/.dockerconfigjson
+
+## Configure OCP cluster
+log "==== OCP cluster configuration (Cert Manager and SBO) started ===="
+cd $GIT_REPO_HOME/../ibm/mas_devops/playbooks
+set +e
+ansible-playbook ocp/configure-ocp.yml
+if [[ $? -ne 0 ]]; then
+  # One reason for this failure is catalog sources not having required state information, so recreate the catalog-operator pod
+  # https://bugzilla.redhat.com/show_bug.cgi?id=1807128
+  echo "Deleting catalog-operator pod"
+  podname=$(oc get pods -n openshift-operator-lifecycle-manager | grep catalog-operator | awk {'print $1'})
+  oc logs $podname -n openshift-operator-lifecycle-manager
+  oc delete pod $podname -n openshift-operator-lifecycle-manager
+  sleep 10
+  # Retry the step
+  ansible-playbook ocp/configure-ocp.yml
+  retcode=$?
+  if [[ $retcode -ne 0 ]]; then
+    log "Failed while configuring OCP cluster"
+    exit 24
+  fi
+fi
+set -e
+log "==== OCP cluster configuration (Cert Manager and SBO) completed ===="
+
+## Deploy MongoDB
+log "==== MongoDB deployment started ===="
+ansible-playbook dependencies/install-mongodb-ce.yml
+log "==== MongoDB deployment completed ===="
+
+## Copying the entitlement.lic to MAS_CONFIG_DIR
+cp $GIT_REPO_HOME/entitlement.lic $MAS_CONFIG_DIR
+
+## Deploy Amqstreams
+# log "==== Amq streams deployment started ===="
+# ansible-playbook install-amqstream.yml
+# log "==== Amq streams deployment completed ===="
+
+# SLS Deployment
+if [[ (-z $SLS_ENDPOINT_URL) || (-z $SLS_REGISTRATION_KEY) || (-z $SLS_PUB_CERT_URL) ]]; then
+  ## Deploy SLS
+  log "==== SLS deployment started ===="
+  ansible-playbook dependencies/install-sls.yml
+  log "==== SLS deployment completed ===="
+
+else
+  log "=== Using Existing SLS Deployment ==="
+  ansible-playbook dependencies/cfg-sls.yml
+  log "=== Generated SLS Config YAML ==="
+fi
+
+#UDS Deployment
+if [[ (-z $BAS_API_KEY) || (-z $BAS_ENDPOINT_URL) || (-z $BAS_PUB_CERT_URL) ]]; then
+  ## Deploy UDS
+  log "==== UDS deployment started ===="
+  ansible-playbook dependencies/install-uds.yml
+  log "==== UDS deployment completed ===="
+
+else
+  log "=== Using Existing BAS Deployment ==="
+  ansible-playbook dependencies/cfg-bas.yml
+  log "=== Generated BAS Config YAML ==="
+fi
+
+# Deploy CP4D
+if [[ $DEPLOY_CP4D == "true" ]]; then
+  log "==== CP4D deployment started ===="
+  ansible-playbook cp4d/install-services-db2.yml
+  ansible-playbook cp4d/create-db2-instance.yml
+  log "==== CP4D deployment completed ===="
+fi
+
+## Create MAS Workspace
+log "==== MAS Workspace generation started ===="
+ansible-playbook mas/gencfg-workspace.yml
+log "==== MAS Workspace generation completed ===="
+
+if [[ $DEPLOY_MANAGE == "true" ]]; then
+  log "==== Configure JDBC  started ===="
+  ansible-playbook mas/configure-suite-db.yml
+  log "==== Configure JDBC completed ===="
+fi
+
+## Deploy MAS
+log "==== MAS deployment started ===="
+ansible-playbook mas/install-suite.yml
+log "==== MAS deployment completed ===="
+
+## Deploy Manage
+if [[ $DEPLOY_MANAGE == "true" ]]; then
+  # Deploy Manage
+  log "==== MAS Manage deployment started ===="
+  ansible-playbook mas/install-app.yml
+  log "==== MAS Manage deployment completed ===="
+
+  # Configure app to use the DB
+  log "==== MAS Manage configure app started ===="
+  ansible-playbook mas/configure-app.yml
+  log "==== MAS Manage configure app completed ===="
 fi
