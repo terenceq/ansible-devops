@@ -8,16 +8,16 @@ set -e
 #MASTER_INSTANCE_TYPE="m5.2xlarge"
 #WORKER_INSTANCE_TYPE="m5.4xlarge"
 # Mongo variables
-export MONGODB_STORAGE_CLASS=gp2
+export MONGODB_STORAGE_CLASS=managed-premium
 # Amqstreams variables
-export KAFKA_STORAGE_CLASS=gp2
+export KAFKA_STORAGE_CLASS=managed-premium
 # Service principle variables
 SP_NAME="http://${CLUSTER_NAME}-sp"
 #IAM_USER_NAME="masocp-user-${RANDOM_STR}"
 # SLS variables
-export SLS_STORAGE_CLASS=gp2
+export SLS_STORAGE_CLASS=managed-premium
 # BAS variables
-export BAS_META_STORAGE=gp2
+export UDS_STORAGE_CLASS=managed-premium
 
 # Retrieve SSH public key
 #TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
@@ -32,7 +32,7 @@ log " KAFKA_STORAGE_CLASS: $KAFKA_STORAGE_CLASS"
 log " SP_NAME: $SP_NAME"
 #log " IAM_USER_NAME: $IAM_USER_NAME"
 log " SLS_STORAGE_CLASS: $SLS_STORAGE_CLASS"
-log " BAS_META_STORAGE: $BAS_META_STORAGE"
+log " UDS_STORAGE_CLASS: $UDS_STORAGE_CLASS"
 log " SSH_PUB_KEY: $SSH_PUB_KEY"
 
 ## Download files from S3 bucket
@@ -194,7 +194,7 @@ else
 fi
 
 #UDS Deployment
-if [[ (-z $BAS_API_KEY) || (-z $BAS_ENDPOINT_URL) || (-z $BAS_PUB_CERT_URL) ]]; then
+if [[ (-z $UDS_API_KEY) || (-z $UDS_ENDPOINT_URL) || (-z $UDS_PUB_CERT_URL) ]]; then
   ## Deploy UDS
   log "==== UDS deployment started ===="
   ansible-playbook dependencies/install-uds.yml
