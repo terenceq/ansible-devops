@@ -122,6 +122,8 @@ else
 fi
 
 # Login to OCP cluster
+log "==== Adding ER key details to OCP default pull-secret ===="
+cd /tmp
 oc login -u $OCP_USERNAME -p $OCP_PASSWORD --server=https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443 --insecure-skip-tls-verify=true
 oc extract secret/pull-secret -n openshift-config --keys=.dockerconfigjson --to=. --confirm
 export encodedEntitlementKey=$(echo cp:$SLS_ENTITLEMENT_KEY | tr -d '\n' | base64 -w0)
@@ -140,9 +142,6 @@ if [[ $retcode -ne 0 ]]; then
   log "Failed to create azurefiles-standard storageclass"
   exit 27
 fi
-
-log "==== Adding ER key details to OCP default pull-secret ===="
-cd /tmp
 
 ## Configure OCP cluster
 log "==== OCP cluster configuration (Cert Manager and SBO) started ===="
