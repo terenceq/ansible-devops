@@ -16,3 +16,6 @@ cpd_wsl_project_id: "{{ lookup('env', 'CPD_WSL_PROJECT_ID') }}" # if undefined o
 cpd_wsl_project_name: "{{ lookup('env', 'CPD_WSL_PROJECT_NAME') | default('ws_default_project', true) }}"
 cpd_wsl_project_description: "{{ lookup('env', 'CPD_WSL_PROJECT_DESCRIPTION') | default('Watson Studio project to be used by HP Utilities app in MAS', true) }}"
 storage_guid: "{{ 1000 | random | to_uuid | lower }}"
+
+cpd_services:
+  - db2wh
