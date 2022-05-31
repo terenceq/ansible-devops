@@ -2,20 +2,61 @@
 
 Note that during a build the version of the ansible collection is automatically adjusted to the correct version.  For local development will we always target the "next major" as the version, this is just a convenient placeholder string that works for local development; all released collections will automatically set this version to the correct value for the release.
 
+
 ## Building the collection locally
 
 ```bash
-cd ibm/mas_devops
+# Build
+ansible-galaxy collection build --output-path image/ansible-devops/ ibm/mas_devops --force && mv image/ansible-devops/ibm-mas_devops-11.0.0.tar.gz image/ansible-devops/ibm-mas_devops.tar.gz
 
-ansible-galaxy collection build --force && ansible-galaxy collection install ibm-mas_devops-7.0.0.tar.gz --force
+# Install
+ansible-galaxy collection install image/ansible-devops/ibm-mas_devops.tar.gz --force
 
-ansible-playbook ../../playbook.yml
+# Run Ansible Playbook
+export REGISTRY_PUBLIC_HOST=xxx
+export IBM_ENTITLEMENT_KEY=xxx
+ansible-playbook ibm.mas_devops.mirror_sls
+
+# Build docker image
+docker build -t ansible-devops:local image/ansible-devops
+
+# Run Ansible Container
+docker run -ti ansible-devops:local bash
 ```
+
+
+## Ultimate one-liner
+Build the collection, build the docker container, run the docker container ...
+```bash
+ansible-galaxy collection build --output-path image/ansible-devops/ ibm/mas_devops --force && mv image/ansible-devops/ibm-mas_devops-11.0.0.tar.gz image/ansible-devops/ibm-mas_devops.tar.gz && ansible-galaxy collection install image/ansible-devops/ibm-mas_devops.tar.gz --force && docker build -t ansible-devops image/ansible-devops && docker run -ti ansible-devops:local bash
+```
+
+
+## Building the collection locally
+```bash
+ansible-galaxy collection build ibm/mas_devops --force && ansible-galaxy collection install ibm-mas_devops-11.0.0.tar.gz --force
+ansible-playbook ibm.mas_devops.playbook
+```
+
+
+## Testing a role
+```bash
+cd ~/ibm-mas/ansible-devops/ibm/mas_devops$
+export ROLE_NAME=ibm_catalogs && ansible-galaxy collection build --force && ansible-galaxy collection install ibm-mas_devops-11.0.0.tar.gz --force && ansible-playbook ibm.mas_devops.run_role
+```
+
+
+## Using the docker image
+This is a great way to test in a clean environment (e.g. to ensure the myriad of environment variables that you no doubt have set up are not impacting your test scenarios).  After you commit your changes to the repository a pre-release container image will be built, which contains your in-development version of the collection:
 
 ```bash
-ansible-galaxy collection build --force
-ansible-galaxy collection publish ibm-mas_devops-7.0.0.tar.gz --token=$ANSIBLE_GALAXY_TOKEN
+docker run -ti quay.io/ibmmas/ansible-devops:x.y.z-pre.mybranch bash
+(app-root) oc login --token=xxxx --server=https://myocpserver
+(app-root) export STUFF
+(app-root) ansible localhost -m include_role -a name=ibm.mas_devops.ocp_verify
+(app-root) ansible-playbook ibm.mas_devops.oneclick_core
 ```
+
 
 ## Style Guide
 Failure to adhere to the style guide will result in a PR being rejected!
@@ -100,29 +141,18 @@ TASK [ibm.mas_devops.mongodb : community : Create MongoDb cluster]
 
 ### Failure condition checks
 All roles must provide clear feedback about missing required properties that do not have a default built into the role.
-- The feedback must be exact.  Do not return a list of required properties, state specifically which variable is missing.
-- Be sure to check for empty string as well as not defined.  Properties that are resolved from environment variables which are not set will be passed into the role as empty string (`""`) rather than undefined.
+- Use Ansible `assert/that` rather than `fail/when`.
+- Be sure to check for empty string as well as not defined.  Properties that are resolved from environment variables which are not set will be passed into the role as an empty string (`""`) rather than undefined.
 
 ```yaml
-# 0. Validate required properties
+# 1. Validate required properties
 # -----------------------------------------------------------------------------
-- name: "community : Fail if mongodb_storage_class is not provided"
-  when: mongodb_storage_class is not defined or mongodb_storage_class == ""
-  fail:
-    msg: "mongodb_storage_class property is required"
-
-- name: "community : Fail if mongodb_storage_capacity_data is not provided"
-  when: mongodb_storage_capacity_data is not defined or mongodb_storage_capacity_data == ""
-  fail:
-    msg: "mongodb_storage_capacity_data property is required"
-
-- name: "community : Fail if mongodb_storage_capacity_logs is not provided"
-  when: mongodb_storage_capacity_logs is not defined or mongodb_storage_capacity_logs == ""
-  fail:
-    msg: "mongodb_storage_capacity_logs property is required"
-
-- name: "community : Fail if mas_instance_id is not provided"
-  when: mas_instance_id is not defined or mas_instance_id == ""
-  fail:
-    msg: "mas_instance_id property is required"
+- name: "community : Fail if required properties are not provided"
+  assert:
+    that:
+      - mongodb_storage_class is defined and mongodb_storage_class != ""
+      - mongodb_storage_capacity_data is defined and mongodb_storage_capacity_data != ""
+      - mongodb_storage_capacity_logs is defined and mongodb_storage_capacity_logs != ""
+      - mas_instance_id is defined and mas_instance_id != ""
+    fail_msg: "One or more required properties are missing"
 ```

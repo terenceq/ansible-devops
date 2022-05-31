@@ -6,6 +6,30 @@
 ## Change Log
 Note that links to pull requests prior to public release of the code (4.0) direct to IBM GitHub Enterprise, and will only be accessible to IBM employees.
 
+- `10.1` Update suite application roles to support Optimizer application ([309](https://github.com/ibm-mas/ansible-devops/pull/309))
+- `10.0` One-click installer support ([#285](https://github.com/ibm-mas/ansible-devops/pull/285), [#296](https://github.com/ibm-mas/ansible-devops/pull/296), [#299](https://github.com/ibm-mas/ansible-devops/pull/299))
+- `9.0` Multiple Updates:
+    - Added ability to set annotations onto suite CR  ([#269](https://github.com/ibm-mas/ansible-devops/pull/269)
+    - Add Assist install playbooks ([#271](https://github.com/ibm-mas/ansible-devops/pull/271)
+    - Added gencfg-sls and gencfg-uds playbooks for using existing SLS and UDS ([#275](https://github.com/ibm-mas/ansible-devops/pull/275)
+    - Add new required var CPD_METADB_BLOCK_STORAGE_CLASS for CP4D 4.0 ([#273](https://github.com/ibm-mas/ansible-devops/pull/273)
+- `8.0` Multiple Updates:
+    - Create secure route to CP4D web client when setting up DNS using CIS and suite_dns role ([#251](https://github.com/ibm-mas/ansible-devops/pull/251))
+    - Configure azurefiles storage class for multi-cloud ([#260](https://github.com/ibm-mas/ansible-devops/pull/260))
+    - SMTP email support for Azure and other changes ([#265](https://github.com/ibm-mas/ansible-devops/pull/265))
+    - Add cp4d_wds role for discovery instance provison ([#234](https://github.com/ibm-mas/ansible-devops/pull/234))
+    - Change MAS_APPWS_COMPONENTS variable format ([#267](https://github.com/ibm-mas/ansible-devops/pull/267))
+- `7.0` Mulitple Updates:
+    - Consolidate cluster specific provision/deprovision playbooks ([#236](https://github.com/ibm-mas/ansible-devops/pull/236))
+    - Fix SLS bootstrap and update docs ([#242](https://github.com/ibm-mas/ansible-devops/pull/242))
+    - Support GPU node in OCP on ROKS ([#224](https://github.com/ibm-mas/ansible-devops/pull/224))
+    - Azure support for OCP cluster deployment ([#243](https://github.com/ibm-mas/ansible-devops/pull/243))
+    - Add UDSCfg (BASCfg) generator ([#210](https://github.com/ibm-mas/ansible-devops/pull/210))
+- `6.5` Multiple Updates:
+    - Add JDBCCfg generator role ([#188](https://github.com/ibm-mas/ansible-devops/pull/188))
+    - Add mustgather clusterTask to pipeline and new mustgather_download playbook ([#222](https://github.com/ibm-mas/ansible-devops/pull/222))
+- `6.4` Add support for MVI deployment ([#196](https://github.com/ibm-mas/ansible-devops/pull/196))
+- `6.3` Allow `ocp_server` and `ocp_token` to be used for `ocp_login` ([#211](https://github.com/ibm-mas/ansible-devops/pull/211))
 - `6.2` Multiple Updates:
     - Support manual upgrade approvals ([#205](https://github.com/ibm-mas/ansible-devops/pull/205))
     - Add support for Db2u operator ([#203](https://github.com/ibm-mas/ansible-devops/pull/203))

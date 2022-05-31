@@ -1,0 +1,36 @@
+---
+apiVersion: discovery.watson.ibm.com/v1
+kind: WatsonDiscovery
+metadata:
+  annotations:
+    oppy.ibm.com/disable-rollback: 'true'
+  name: "{{ cpd_service_info[cpd_service_name].cr_name }}"
+  namespace: "{{ cpd_instance_namespace }}"
+spec:
+  license:
+    accept: true
+  shared:
+    storageClassName: "{{ cpd_service_storage_class }}"
+  watsonGateway:
+    version: main
+  elasticsearch:
+    clientNode:
+      persistence:
+        size: 1Gi
+    dataNode:
+      persistence:
+        size: 40Gi
+    masterNode:
+      persistence:
+        size: 2Gi
+  etcd:
+    storageSize: 10Gi
+  minio:
+    persistence:
+      size: 100Gi
+  postgres:
+    database:
+      storageRequest: 30Gi
+  rabbitmq:
+    persistentVolume:
+      size: 5Gi

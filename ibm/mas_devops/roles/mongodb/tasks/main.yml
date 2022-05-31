@@ -2,10 +2,16 @@
 # 1. Check for undefined properties that do not have a default
 # -----------------------------------------------------------------------------
 - name: "Fail if mongodb_provider is not provided"
-  when: mongodb_provider is not defined or mongodb_provider == ""
-  fail:
-    msg: "mongodb_provider property is required"
+  assert:
+    that: mongodb_provider is defined and mongodb_provider != ""
+    fail_msg: "mongodb_provider property is required"
 
-# 2. Run the provision
+
+# 2. Load default storage classes (if not provided by the user)
+# -----------------------------------------------------------------------------
+- include_tasks: tasks/determine-storage-classes.yml
+
+
+# 3. Run the provision
 # -----------------------------------------------------------------------------
 - include_tasks: "tasks/providers/{{ mongodb_provider }}.yml"
