@@ -4,3 +4,5 @@
 # These are used to set up image pull secret in the openshift-marketplace namespace
 artifactory_username: "{{ lookup('env', 'ARTIFACTORY_USERNAME') | lower }}"
 artifactory_apikey: "{{ lookup('env', 'ARTIFACTORY_APIKEY') }}"
+sls_username: "{{ lookup('env', 'SLS_USERNAME') | lower }}"
+sls_password: "{{ lookup('env', 'SLS_PASSWORD') }}"

@@ -7,8 +7,10 @@
   vars:
     artifactoryAuthStr: "{{artifactory_username}}:{{artifactory_apikey}}"
     artifactoryAuth: "{{ artifactoryAuthStr | b64encode }}"
+    slsAuthStr: "{{sls_username}}:{{sls_password}}"
+    slsAuth: "{{ slsAuthStr | b64encode }}"
     content:
-      - '{"auths":{"wiotp-docker-local.artifactory.swg-devops.com": {"username":"{{artifactory_username}}","password":"{{artifactory_apikey}}","auth":"{{artifactoryAuth}}"}'
+      - '{"auths":{"wiotp-docker-local.artifactory.swg-devops.com":{"username":"{{artifactory_username}}","password":"{{artifactory_apikey}}","auth":"{{artifactoryAuth}}"},"cp.stg.icr.io":{"username":"{{sls_username}}","password":"{{sls_password}}","auth":"{{slsAuth}}"}'
       - '}'
       - '}'
   kubernetes.core.k8s:
