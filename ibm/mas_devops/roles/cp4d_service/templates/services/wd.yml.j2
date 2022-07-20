@@ -7,6 +7,7 @@ metadata:
   name: "{{ cpd_service_info[cpd_service_name].cr_name }}"
   namespace: "{{ cpd_instance_namespace }}"
 spec:
+  version: "{{ cpd_product_version }}"
   license:
     accept: true
   shared:

@@ -47,6 +47,7 @@
     kind: ZenService
     definition:
       spec:
+        version: "{{ zen_version_supported }}"
         scaleConfig: medium
         ZenCoreMetaDb:
           name: zen-metastoredb
@@ -61,7 +62,6 @@
               cpu: 200m
               memory: 1024Mi
     apply: true
-
 
 # 3. Wait for controlPlaneStatus
 # -----------------------------------------------------------------------------

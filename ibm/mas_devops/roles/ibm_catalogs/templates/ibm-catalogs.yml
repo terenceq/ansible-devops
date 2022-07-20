@@ -8,11 +8,45 @@ spec:
   displayName: ibm-operator-catalog
   publisher: IBM Content
   sourceType: grpc
-  image: icr.io/cpopen/ibm-operator-catalog:latest
+  image: icr.io/cpopen/ibm-operator-catalog:v1.21-20220620.164654-CA7A1CF42 # this will pull foundation services 3.18
   updateStrategy:
     registryPoll:
       interval: 45m
   priority: 90
+---
+# # catalog source to install foundations services 3.18 which has operandRequest zen 1.5.4 which allows zen versions up to 4.4.4
+# # https://www.ibm.com/docs/en/cloud-paks/cp-data/4.0?topic=planning-operator-operand-versions#versions__shared-components
+# apiVersion: operators.coreos.com/v1alpha1
+# kind: CatalogSource
+# metadata:
+#   name: opencloud-operators
+#   namespace: openshift-marketplace
+# spec:
+#   displayName: IBMCS Operators
+#   image: >-
+#     icr.io/cpopen/ibm-common-service-catalog@sha256:5739bd0500b1b23a2be314a668f7e2cf8bd1eb6403010068a0e33bd073287b9f
+#   publisher: IBM
+#   sourceType: grpc
+#   updateStrategy:
+#     registryPoll:
+#       interval: 45m
+#   priority: 100
+---
+# catalog source to install cpd 2.0.8
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: cpd-platform
+  namespace: openshift-marketplace
+spec:
+  displayName: Cloud Pak for Data
+  image: >-
+    icr.io/cpopen/ibm-cpd-platform-operator-catalog@sha256:da2701a8f10d13240a8ce0182964052b7f5280665f2614419c3cc4a1deab52a5
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
