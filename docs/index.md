@@ -31,7 +31,7 @@ ROLE_NAME=cert_manager ansible-playbook ibm.mas_devops.run_role
 The easiest way to use this collection is to take advantage of the [ibmmas/ansible-devops](https://quay.io/repository/ibmmas/ansible-devops) container image, this negates the need to install anything on your local machine (other than docker, obviously).
 
 ```bash
-docker run -ti quay.io/ibmmas/ansible-devops:10.2.0 bash
+docker run -ti quay.io/ibmmas/ansible-devops:latest bash
 (app-root) oc login --token=xxxx --server=https://myocpserver
 (app-root) ansible localhost -m include_role -a name=ibm.mas_devops.ocp_verify
 (app-root) ansible-playbook ibm.mas_devops.oneclick_core
@@ -45,7 +45,7 @@ docker run -ti quay.io/ibmmas/ansible-devops:10.2.0 bash
 
 ```bash
 python3 --version
-python3 -m pip install ansible junit_xml pymongo xmljson kubernetes==12.0.1 openshift==0.12.1
+python3 -m pip install ansible junit_xml pymongo xmljson jmespath kubernetes==12.0.1 openshift==0.12.1
 ansible --version
 ansible-playbook --version
 ```
@@ -82,8 +82,6 @@ Optionally, you can also pin the version of the collection that you install, all
 ```
 ansible-galaxy collection install ibm.mas_devops:10.2.0
 ```
-
-
 
 ## Support
 This Ansible collection is developed by the IBM Maximo Application Suite development team, customers may raise support tickets via the same routes they would an issue with the product itself, or [raise an issue directly in the GitHub repository](https://github.com/ibm-mas/ansible-devops/issues).
