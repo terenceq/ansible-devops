@@ -22,52 +22,40 @@
       - "VCenter username ............. {{ vcenter_username }}"
       - "VCenter password ............. {{ vcenter_password }}"
 
-# 3. Check for required software
+# 3. Download OCP installer and client from https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp
 # -----------------------------------------------------------------------------
-#- name: "Test if xxxx is installed"
-#  shell: rosa version
-#  register: rosa_version
-#  ignore_errors: true
-#
-#- name: "Fail if rosa is not installed"
-#  assert:
-#    that: ( rosa_version.rc == 0 )
-#    fail_msg: "rosa CLI must be installed (https://console.redhat.com/openshift/create/rosa/welcome)"
+- name: "vsphere: downloading OCP {{ ocp_version }} installer from {{ ocp_download_url }}/{{ ocp_version }}/openshift-install-linux.tar.gz"
+  shell: |
+    mkdir -p {{ ocp_download_directory }}
+    curl -w '%{http_code}\n' -o {{ ocp_download_directory }}/installer-{{ ocp_version }}.tar.gz "{{ ocp_download_url }}/{{ ocp_version }}/openshift-install-linux.tar.gz"
+  register: curl_output
+  failed_when: >
+    (curl_output.rc != 0) or 
+    (curl_output.stdout != "200")
 
-# # 4. Download OCP installer and client from https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp
-# # -----------------------------------------------------------------------------
-# - name: "vsphere: downloading OCP {{ ocp_version }} installer from {{ ocp_download_url }}/{{ ocp_version }}/openshift-install-linux.tar.gz"
-#   shell: |
-#     mkdir -p {{ ocp_download_directory }}
-#     curl -w '%{http_code}\n' -o {{ ocp_download_directory }}/installer-{{ ocp_version }}.tar.gz "{{ ocp_download_url }}/{{ ocp_version }}/openshift-install-linux.tar.gz"
-#   register: curl_output
-#   failed_when: >
-#     (curl_output.rc != 0) or 
-#     (curl_output.stdout != "200")
+- name: "vsphere: downloading OCP {{ ocp_version }} client from {{ ocp_download_url }}/{{ ocp_version }}/openshift-client-linux.tar.gz"
+  shell: |
+    curl -w '%{http_code}\n' -o {{ ocp_download_directory }}/client-{{ ocp_version }}.tar.gz "{{ ocp_download_url }}/{{ ocp_version }}/openshift-client-linux.tar.gz"
+  register: curl_output
+  failed_when: >
+    (curl_output.rc != 0) or 
+    (curl_output.stdout != "200")
 
-# - name: "vsphere: downloading OCP {{ ocp_version }} client from {{ ocp_download_url }}/{{ ocp_version }}/openshift-client-linux.tar.gz"
-#   shell: |
-#     curl -w '%{http_code}\n' -o {{ ocp_download_directory }}/client-{{ ocp_version }}.tar.gz "{{ ocp_download_url }}/{{ ocp_version }}/openshift-client-linux.tar.gz"
-#   register: curl_output
-#   failed_when: >
-#     (curl_output.rc != 0) or 
-#     (curl_output.stdout != "200")
+- name: "vsphere: extracting OCP installer and client to {{ ocp_download_directory }}"
+  shell: |
+    tar xf {{ ocp_download_directory }}/client-{{ ocp_version }}.tar.gz -C {{ ocp_download_directory }}
+    tar xf {{ ocp_download_directory }}/installer-{{ ocp_version }}.tar.gz -C {{ ocp_download_directory }}
+  register: tar_output
+  failed_when: >
+    (tar_output.rc != 0)
 
-# - name: "vsphere: extracting OCP installer and client to {{ ocp_download_directory }}"
-#   shell: |
-#     tar xf {{ ocp_download_directory }}/client-{{ ocp_version }}.tar.gz -C {{ ocp_download_directory }}
-#     tar xf {{ ocp_download_directory }}/installer-{{ ocp_version }}.tar.gz -C {{ ocp_download_directory }}
-#   register: tar_output
-#   failed_when: >
-#     (tar_output.rc != 0)
+- name: "vsphere: list downloaded OCP files in {{ ocp_download_directory }}"
+  shell: ls -al {{ ocp_download_directory }}
+  register: ls_output
+- debug:
+    msg: "{{ ls_output.stdout_lines }}"
 
-# - name: "vsphere: list downloaded OCP files in {{ ocp_download_directory }}"
-#   shell: ls -al {{ ocp_download_directory }}
-#   register: ls_output
-# - debug:
-#     msg: "{{ ls_output.stdout_lines }}"
-
-# 5. Test connection VCenter admin endpoint at {{ vcenter_host }}
+# 4. Test connection VCenter admin endpoint at {{ vcenter_host }}
 # -----------------------------------------------------------------------------
 - name: "vsphere: test connection VCenter admin endpoint at {{ vcenter_host }}"
   vcenter_utils:
