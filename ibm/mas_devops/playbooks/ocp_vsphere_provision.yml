@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+  vars:
+    cluster_type: vsphere
+    ocp_version: "{{ lookup('env', 'OCP_VERSION') | default('4.11.0-rc.7', True) }}"
+
+  pre_tasks:
+    # For the full set of supported environment variables refer to the playbook documentation
+    - name: Check for required environment variables
+      assert:
+        that:
+          - lookup('env', 'VCENTER_HOST') != ""
+          - lookup('env', 'VCENTER_USERNAME') != ""
+          - lookup('env', 'VCENTER_PASSWORD') != ""
+          - lookup('env', 'CLUSTER_NAME') != ""
+        fail_msg: "One or more required environment variables are not defined"
+
+  roles:
+    # 1. Provision the OCP cluster on VSphere
+    - ibm.mas_devops.ocp_provision
+
+    # 2. Login and verify the cluster is ready
+    #- ibm.mas_devops.ocp_login
+    #- ibm.mas_devops.ocp_verify
+
+    # 3. Install OpenShift Container Storage
+    #- ibm.mas_devops.ocs

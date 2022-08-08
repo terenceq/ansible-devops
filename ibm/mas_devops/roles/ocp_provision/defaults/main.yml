@@ -12,6 +12,13 @@ cluster_platform: "{{lookup('env', 'CLUSTER_PLATFORM') | default('x',true)}}"
 # We can't provide a default, there is no single value that would make sense across all providers, and that would not eventually become dated
 ocp_version: "{{ lookup('env', 'OCP_VERSION') }}"
 
+# Directory where to download OCP release (currently only supported for vsphere cluster type)
+# OCP is downloaded from https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp using the value provided
+# by the ocp_version variable (e.g. ocp_version=4.11.0-rc.7 would download OCP from 
+# https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.11.0-rc.7)
+ocp_download_directory: "{{ lookup('env', 'OCP_DOWNLOAD_DIRECTORY') | default('~/ocp', true) }}"
+ocp_download_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp"
+
 # GPU node settings
 # Flag to add GPU worker node to cluster. Currently only set up for ROKS clusters
 ocp_provision_gpu: "{{ lookup('env', 'OCP_PROVISION_GPU') | default('false', True) }}"
@@ -27,6 +34,7 @@ supported_cluster_types:
   - fyre
   - roks
   - rosa
+  - vsphere
 
 # ROKS defaults
 ibmcloud_apikey: "{{ lookup('env', 'IBMCLOUD_APIKEY') }}"
@@ -55,3 +63,8 @@ fyre_worker_cpu: "{{ lookup('env', 'FYRE_WORKER_CPU') | default('64', true) }}"
 rosa_token: "{{ lookup('env', 'ROSA_TOKEN') }}"
 rosa_cluster_admin_password: "{{ lookup('env', 'ROSA_CLUSTER_ADMIN_PASSWORD') }}"
 rosa_compute_nodes: "{{ lookup('env', 'ROSA_COMPUTE_NODES') | default('3', true) }}"
+
+# VSphere defaults
+vcenter_host: "{{ lookup('env', 'VCENTER_HOST') }}"
+vcenter_username: "{{ lookup('env', 'VCENTER_USERNAME') }}"
+vcenter_password: "{{ lookup('env', 'VCENTER_PASSWORD') }}"
