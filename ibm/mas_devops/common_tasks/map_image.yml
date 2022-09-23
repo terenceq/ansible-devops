@@ -1,0 +1,45 @@
+---
+
+# 1. Look for the airgap config
+
+- name: "map-image : Look for the MAS ImageContentSourcePolicy"
+  kubernetes.core.k8s_info:
+    api_version: operator.openshift.io/v1alpha1
+    kind: ImageContentSourcePolicy
+    name: ibm-mas-and-dependencies
+  register: image_content_source_policy
+
+- debug:
+    var: image_content_source_policy
+
+- name: "map-image : Set airgap_install property"
+  set_fact:
+    airgap_install: "{{ image_content_source_policy.resources | length == 1 | bool }}"
+
+- name: "detect-airgap : Set airgap_install property"
+  set_fact:
+    repository_digest_mirrors: "{{ image_content_source_policy.resources.spec.repositoryDigestMirrors) }}"
+
+- name: "map-image : Print policy records"
+  ansible.builtin.debug:
+    msg: "Key {{ item.key }} is {{ item.value.source }} ({{ item.value.mirrors }})"
+  loop: "{{ lookup('ansible.builtin.dict', repository_digest_mirrors) }}"
+
+# Items from loop can be used in when: statements
+- name: "map-image : search for key"
+  ansible.builtin.set_fact:
+    icr_mapping_exists: true
+  loop: "{{ lookup('ansible.builtin.dict', repository_digest_mirrors) }}"
+  when: "'icr.io' in item.key"
+
+# Items from loop can be used in when: statements
+- name: "map-image : search for key"
+  ansible.builtin.set_fact:
+    cp_mapping_exists: true
+  loop: "{{ lookup('ansible.builtin.dict', repository_digest_mirrors) }}"
+  when: "'cp.icr.io' in item.key"
+
+- debug:
+    var: icr_mapping_exists
+    var: cp_mapping_exists
+
