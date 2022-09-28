@@ -1,42 +1,44 @@
 ---
 
-# 1. Wait for CCS
-# -----------------------------------------------------------------------------
-#- name: "Wait for CCS"
-#  include_tasks: "wait-ccs.yml"
-
-
-# 2. Wait for WML CR to be ready
-# -----------------------------------------------------------------------------
-# We can't exit early if the status goes to Failed because the reconcile will
-# report failure multiple times during initial install due to timeouts (CCS takes
-# a very long time to install because it's single threaded)
-#
-# https://github.ibm.com/PrivateCloud-analytics/CPD-Quality/issues/3480
-#- name: "wait-wml : Wait for wmlStatus 'Completed' (5m interval)"
-#  kubernetes.core.k8s_info:
-#    api_version: "{{ cpd_service_info[cpd_service_name].api_version }}"
-#    kind: "{{ cpd_service_info[cpd_service_name].crd_kind }}"
-#    name: "{{ cpd_service_info[cpd_service_name].cr_name }}"
-#    namespace: "{{ cpd_instance_namespace }}"
-#  register: cpd_cr_lookup
-#  until:
-#    - cpd_cr_lookup.resources is defined
-#    - cpd_cr_lookup.resources | length == 1
-#    - cpd_cr_lookup.resources[0].status is defined
-#    - cpd_cr_lookup.resources[0].status.wmlStatus is defined
-#    - cpd_cr_lookup.resources[0].status.wmlStatus == "Completed" #  or cpd_cr_lookup.resources[0].status.wmlStatus == "Failed"
-#  retries: 30 # Up to 2.5 hours
-#  delay: 300 # Every 5 minutes
-
-#- name: "wait-wml : Check that the WML wmlStatus is 'Completed'"
-#  assert:
-#    that: cpd_cr_lookup.resources[0].status.wmlStatus == "Completed"
-#    fail_msg: "Watson Machine Learning install failed (wmlStatus)"
-
 # 3. Update ConfigMap wmlenvoyconfig
 # -----------------------------------------------------------------------------
-- name: Lookup existing cm 'wmlenvoyconfig' ConfigMap
+#- name: Lookup existing cm 'wmlenvoyconfig' ConfigMap
+ # kubernetes.core.k8s_info:
+ #   api_version: v1
+ #   kind: ConfigMap
+ #   name: wmlenvoyconfig
+ #   namespace: "{{ cpd_instance_namespace }}"
+ # register: configmap_info
+
+#- debug:
+ #   msg: "{{ configmap_info }}"  
+
+#- name: "Assert that the 'wmlenvoyconfig' configmap exists"
+ # assert:
+ #   that:
+ #     - configmap_info is defined
+ #     - configmap_info.resources is defined
+ #     - configmap_info.resources | length == 1
+ #   fail_msg: "Unable to lookup configmap, the ConfigMap 'wmlenvoyconfig' does not exist: {{ configmap_info }}"
+
+#- name: "Change a field in the ConfigMap (this will be a PATCH request)"
+ # kubernetes.core.k8s:
+ #   definition:
+ #     kind: ConfigMap
+ #     apiVersion: v1
+ #     metadata:
+ #       name: wmlenvoyconfig
+ #       namespace: "{{ cpd_instance_namespace }}"
+ #     data: 
+ #       envoy-config-urlparam-private.json: "{\n  \"listeners\": [\n    {\n      \"address\": \"tcp://0.0.0.0:17600\",\n      \"ssl_context\": {\n        \"ca_cert_file\": \"/etc/private_certs/envoycacert.pem\",\n        \"cert_chain_file\": \"/etc/private_certs/cacertchain.pem\",\n        \"private_key_file\": \"/etc/private_certs/key.pem\",\n        \"alpn_protocols\": \"h2,http/1.1\",\n        \"alt_alpn_protocols\": \"http/1.1\"\n      },\n      \"filters\": [\n        {\n          \"type\": \"read\",\n          \"name\": \"http_connection_manager\",\n          \"config\": {\n            \"access_log\": [\n              {\n                \"format\": \"[%START_TIME%]  \\\"%REQ(X-FORWARDED-FOR)%\\\" - \\\"%REQ(USER-AGENT)%\\\"  \\\"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\\\" %RESPONSE_CODE% %BYTES_RECEIVED% %BYTES_SENT%  x-request-id = \\\"%REQ(X-REQUEST-ID)%\\\" x-global-transaction-id = \\\"%REQ(X-GLOBAL-TRANSACTION-ID)%\\\" \\\"%REQ(:AUTHORITY)%\\\" \\\"%UPSTREAM_HOST%\\\" \\\"%UPSTREAM_CLUSTER%\\\"    rt=\\\"%DURATION%\\\" uct=\\\"%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%\\\" \\n\",\n                \"path\": \"/dev/stdout\"\n              }],\n            \"generate_request_id\": true,\n            \"codec_type\": \"auto\",\n            \"idle_timeout_s\": 120,\n            \"stat_prefix\": \"ingress_http\",\n            \"route_config\": {\n              \"virtual_hosts\": [\n                {\n                  \"name\": \"service\",\n                  \"domains\": [\"*\"],\n                  \"require_ssl\": \"all\",\n                  \"routes\": [\n                    {\n                      \"timeout_ms\": 600000,\n                      \"retry_policy\": {\n                          \"retry_on\": \"gateway-error,connect-failure\",\n                          \"num_retries\": 120\n                          },\n     \t\t          \"prefix\": \"/\",\n     \t\t          \"cluster_header\" : \"v4-deployment-id\"\n                    }\n                  ]\n                }\n              ]\n            },\n            \"filters\": [\n              {\n                \"type\": \"decoder\",\n                \"name\": \"router\",\n                \"config\": {}\n              }\n            ]\n          }\n        }\n      ]\n    }\n  ],\n  \"admin\": {\n    \"access_log_path\": \"/dev/stdout\",\n    \"address\": \"tcp://0.0.0.0:8001\"\n  },\n  \"cluster_manager\": {\n    \"clusters\": [\n    ],\n    \"sds\": {\n      \"cluster\": {\n        \"name\": \"sds\",\n        \"connect_timeout_ms\": 120000,\n        \"type\": \"strict_dns\",\n        \"lb_type\": \"round_robin\",\n        \"hosts\": [\n          {\n            \"url\": \"tcp://localhost:8081\"\n          }\n        ]\n      },\n      \"refresh_delay_ms\": 1000\n    },\n    \"cds\": {\n      \"cluster\": {\n        \"name\": \"cds\",\n        \"connect_timeout_ms\": 120000,\n        \"type\": \"strict_dns\",\n        \"lb_type\": \"round_robin\",\n        \"hosts\": [\n          {\n            \"url\": \"tcp://localhost:8081\"\n          }\n        ]\n      },\n      \"refresh_delay_ms\": 100\n    },\n    \"outlier_detection\": {\n      \"event_log_path\": \"/dev/stdout\"\n    }\n  }\n}\n"
+ #     apply: yes
+ #     server_side_apply:
+ #        field_manager: ansible
+ #        force_conflicts: true
+ # register: configmap_patch_output
+
+# this will lookup the wmlenvoyconfig config map and store its content in a variable
+- name: "wait-wml : lookup wmlenvoyconfig configmap"
   kubernetes.core.k8s_info:
     api_version: v1
     kind: ConfigMap
@@ -44,29 +46,41 @@
     namespace: "{{ cpd_instance_namespace }}"
   register: configmap_info
 
+# this will parse 'envoy-config-urlparam-private.json' content from json to a dictionary (so we can access its values via ansible) and store in a new variable
+- set_fact:
+    envoy_config_json: "{{ configmap_info.resources[0].data['envoy-config-urlparam-private.json'] | from_json }}"
+
+# print new variable content
 - debug:
-    msg: "{{ configmap_info }}"  
+    msg: "{{ envoy_config_json }}"
 
-- name: "Assert that the 'wmlenvoyconfig' configmap exists"
-  assert:
-    that:
-      - configmap_info is defined
-      - configmap_info.resources is defined
-      - configmap_info.resources | length == 1
-    fail_msg: "Unable to lookup configmap, the ConfigMap 'wmlenvoyconfig' does not exist: {{ configmap_info }}"
+# this will access the 'timeout_ms' property down the dictionary hierarchy and update its value, and store the updated content in new variable.
+- ansible.utils.update_fact:
+    updates:
+      - path: envoy_config_json.listeners[0].filters[0].config.route_config.virtual_hosts[0].routes[0].timeout_ms
+        value: "{{ cpd_wml_envoy_timeout }}" # this value comes from the variable created in defaults/main.yml
+  register: updated_envoy_config_json
 
-- name: "Change a field in the ConfigMap (this will be a PATCH request)"
+# print updated variable content
+- debug:
+    msg: "{{ updated_envoy_config_json.envoy_config_json }}"
+
+# now that we have the updated json content stored in a variable, need to update the configmap with this new json formatted file content
+- name: "wait-wml : Patch wmlenvoyconfig configmap timeout_ms value"
   kubernetes.core.k8s:
+    api_version: v1
+    kind: ConfigMap
+    name: wmlenvoyconfig
+    namespace: "{{ cpd_instance_namespace }}"
     definition:
-      kind: ConfigMap
-      apiVersion: v1
-      metadata:
-        name: wmlenvoyconfig
-        namespace: "{{ cpd_instance_namespace }}"
-      data: 
-        envoy-config-urlparam-private.json: "{\n  \"listeners\": [\n    {\n      \"address\": \"tcp://0.0.0.0:17600\",\n      \"ssl_context\": {\n        \"ca_cert_file\": \"/etc/private_certs/envoycacert.pem\",\n        \"cert_chain_file\": \"/etc/private_certs/cacertchain.pem\",\n        \"private_key_file\": \"/etc/private_certs/key.pem\",\n        \"alpn_protocols\": \"h2,http/1.1\",\n        \"alt_alpn_protocols\": \"http/1.1\"\n      },\n      \"filters\": [\n        {\n          \"type\": \"read\",\n          \"name\": \"http_connection_manager\",\n          \"config\": {\n            \"access_log\": [\n              {\n                \"format\": \"[%START_TIME%]  \\\"%REQ(X-FORWARDED-FOR)%\\\" - \\\"%REQ(USER-AGENT)%\\\"  \\\"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\\\" %RESPONSE_CODE% %BYTES_RECEIVED% %BYTES_SENT%  x-request-id = \\\"%REQ(X-REQUEST-ID)%\\\" x-global-transaction-id = \\\"%REQ(X-GLOBAL-TRANSACTION-ID)%\\\" \\\"%REQ(:AUTHORITY)%\\\" \\\"%UPSTREAM_HOST%\\\" \\\"%UPSTREAM_CLUSTER%\\\"    rt=\\\"%DURATION%\\\" uct=\\\"%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%\\\" \\n\",\n                \"path\": \"/dev/stdout\"\n              }],\n            \"generate_request_id\": true,\n            \"codec_type\": \"auto\",\n            \"idle_timeout_s\": 120,\n            \"stat_prefix\": \"ingress_http\",\n            \"route_config\": {\n              \"virtual_hosts\": [\n                {\n                  \"name\": \"service\",\n                  \"domains\": [\"*\"],\n                  \"require_ssl\": \"all\",\n                  \"routes\": [\n                    {\n                      \"timeout_ms\": 600000,\n                      \"retry_policy\": {\n                          \"retry_on\": \"gateway-error,connect-failure\",\n                          \"num_retries\": 120\n                          },\n     \t\t          \"prefix\": \"/\",\n     \t\t          \"cluster_header\" : \"v4-deployment-id\"\n                    }\n                  ]\n                }\n              ]\n            },\n            \"filters\": [\n              {\n                \"type\": \"decoder\",\n                \"name\": \"router\",\n                \"config\": {}\n              }\n            ]\n          }\n        }\n      ]\n    }\n  ],\n  \"admin\": {\n    \"access_log_path\": \"/dev/stdout\",\n    \"address\": \"tcp://0.0.0.0:8001\"\n  },\n  \"cluster_manager\": {\n    \"clusters\": [\n    ],\n    \"sds\": {\n      \"cluster\": {\n        \"name\": \"sds\",\n        \"connect_timeout_ms\": 120000,\n        \"type\": \"strict_dns\",\n        \"lb_type\": \"round_robin\",\n        \"hosts\": [\n          {\n            \"url\": \"tcp://localhost:8081\"\n          }\n        ]\n      },\n      \"refresh_delay_ms\": 1000\n    },\n    \"cds\": {\n      \"cluster\": {\n        \"name\": \"cds\",\n        \"connect_timeout_ms\": 120000,\n        \"type\": \"strict_dns\",\n        \"lb_type\": \"round_robin\",\n        \"hosts\": [\n          {\n            \"url\": \"tcp://localhost:8081\"\n          }\n        ]\n      },\n      \"refresh_delay_ms\": 100\n    },\n    \"outlier_detection\": {\n      \"event_log_path\": \"/dev/stdout\"\n    }\n  }\n}\n"
-      apply: yes
-      server_side_apply:
-         field_manager: ansible
-         force_conflicts: true
-  register: configmap_patch_output
+      data:
+        envoy-config-urlparam-private.json: "{{ updated_envoy_config_json.envoy_config_json | to_nice_json }}"
+
+- name: Rollout restart if ConfigMap wmlenvoyconfig wml changed
+  shell: /bin/bash -c "oc rollout restart deployment wml-deployment-envoy -n {{ cpd_instance_namespace }}"
+  when: configmap_info.changed
+ 
+
+
+
+

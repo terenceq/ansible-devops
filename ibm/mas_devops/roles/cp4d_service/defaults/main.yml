@@ -127,3 +127,9 @@ cpd_wd_instance_name: "{{ lookup('env', 'CPD_WD_INSTANCE_NAME') | default(cpd_de
 #     crd_kind: WOService
 #     crd_name: woservices.wos.cpd.ibm.com
 #     cr_name: aiopenscale
+
+# CPD Watson Machine Learning default properties
+# ---------------------------------------------------------------------------------------------------------------------
+# Default timeout to prevent Predictions API in Watson Machine Learning service to timeout too soon:
+# https://www.ibm.com/docs/en/cloud-paks/cp-data/4.0?topic=issues-watson-studio#WML-API-timeout
+cpd_wml_envoy_timeout: 600000 # default wml envoy timeout to 10 minutes
