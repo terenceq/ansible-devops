@@ -6,7 +6,7 @@ Provision OCP cluster on DevIT Fyre or IBM Cloud ROKS.
 Role Variables
 -------------------------------------------------------------------------------
 ### cluster_type
-Required.  Specify the cluster type, supported values are `fyre`, `roks`, `rosa`, and `aws-ipi`.
+Required.  Specify the cluster type, supported values are `fyre`, `roks`, `rosa`, and `ipi`.
 
 - Environment Variable: `CLUSTER_TYPE`
 - Default Value: None
@@ -206,7 +206,7 @@ These variables are only used when `cluster_type = ipi`.
     IPI stands for **Installer Provisioned Infrastructure**.  OpenShift offers two possible deployment methods: IPI and UPI (User Provisioned Infrastructure). The difference is the degree of automation and customization. IPI will not only deploy OpenShift but also all infrastructure components and configurations.
 
 ### ipi_platform
-Platform to create the cluster on.  Technically, any platform supported by `openshift-install` should work here, but currently we have only specifically tested on `aws`, which is the default value.
+Platform to create the cluster on.  Technically, any platform supported by `openshift-install` should work here, but currently we have only specifically tested on `aws` and `gcp`. The default is `aws`.
 
 - Optional when `cluster_type = ipi`
 - Environment Variable: `IPI_PLATFORM`
@@ -217,12 +217,12 @@ Platform region where OCP cluster will be created.
 
 - Optional when `cluster_type = ipi`
 - Environment Variable: `IPI_REGION`
-- Default Value: `us-east-1`
+- Default Value: `us-east-1` for `aws`. `us-central1` for `gcp`.
 
 ### ipi_base_domain
 Specify the base domain of the cluster that will be provisioned.
 
-- **Required** when `cluster_type = aipi`
+- **Required** when `cluster_type = ipi`
 - Environment Variable: `IPI_BASE_DOMAIN`
 - Default Value: None
 
@@ -245,7 +245,7 @@ Control plane node type.
 
 - Optional when `cluster_type = ipi`
 - Environment Variable: `IPI_CONTROLPLANE_TYPE`
-- Default Value: `m5.4xlarge`
+- Default Value: `m5.4xlarge` for `aws`. `e2-standard-8` for `gcp`.
 
 ### ipi_controlplane_replicas
 The number of master nodes to provision to form the control plane of your cluster.
@@ -259,7 +259,7 @@ Compute node type.
 
 - Optional when `cluster_type = ipi`
 - Environment Variable: `IPI_COMPUTE_TYPE`
-- Default Value: `m5.4xlarge`
+- Default Value: `m5.4xlarge` for `aws`. `e2-standard-16` for `gcp`.
 
 ### ipi_compute_replicas
 The number of worker nodes to provsision in the cluster, providing your compute resource.
