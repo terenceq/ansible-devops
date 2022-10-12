@@ -41,5 +41,7 @@
 
 - debug:
     var: icr_mapping_exists
+
+- debug:
     var: cp_mapping_exists
 
