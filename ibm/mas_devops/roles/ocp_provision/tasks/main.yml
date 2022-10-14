@@ -18,6 +18,11 @@
     that: cluster_type is in supported_cluster_types
     fail_msg: "cluster_type '{{ cluster_type }}' property is not supported by this role"
 
+- name: "Fail if cloud type is not supported"
+  assert: 
+    that: ipi_platform  is in ipi_supported_platform
+    fail_msg: "ipi_platform '{{ ipi_platform }}' property is not supported by this role"
+
 - name: "Fail if no OCP version is provided"
   assert:
     that: ocp_version is defined and ocp_version != ""

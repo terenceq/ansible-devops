@@ -12,7 +12,9 @@ supported_cluster_types:
   - roks
   - rosa
   - ipi
-
+ipi_supported_platform:
+  - aws
+  - gcp
 
 # GPU support (limited)
 # -----------------------------------------------------------------------------
@@ -65,6 +67,10 @@ rosa_compute_nodes: "{{ lookup('env', 'ROSA_COMPUTE_NODES') | default('3', true)
 aws_access_key_id: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
 aws_secret_access_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
 
+#GCP
+google_applcation_credentials: "{{ lookup('env','GOOGLE_APPLICATION_CREDENTIALS') }}"
+project_id: "{{ lookup('env', 'PROJECT_ID')}}"
+ssh_key_name: "{{ lookup('env', 'SSH_KEY_NAME')}}"
 
 # Installer Provided Infrastructure
 # -----------------------------------------------------------------------------

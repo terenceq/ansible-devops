@@ -35,7 +35,20 @@
       - lookup('env', 'AWS_SECRET_ACCESS_KEY') != ""
     fail_msg: "One or more required parameters are not defined"
 
+#for GCP
+- name: "ipi : Fail if required parameters are not provided (GCP)"
+  when: ipi_platform == "gcp"
+  assert:
+    that:
+      - lookup('env', 'GOOGLE_APPLICATION_CREDENTIALS') != ""
+      - lookup('env', 'PROJECT_ID') != ""
+    fail_msg: "One or more required parameters are not defined"
 
+#commented for local testing of gcp
+#- name: "ipi :gcp login"
+#  shell:
+#  " gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS "
+  
 # 2. Debug Info
 # -----------------------------------------------------------------------------
 - name: "ipi : Debug information"
@@ -66,7 +79,13 @@
       - "AWS Access Key ......................... {{ aws_access_key_id }}"
       - "AWS Secret Access Key .................. {{ aws_secret_access_key }}"
 
-
+- name: "ipi : Debug information (GCP)"
+  when: ipi_platform == "gcp"
+  debug:
+    msg:
+     - "google application credentals................{{ google_applcation_credentials }}"
+     - "projectId....................................{{ project_id }}"
+     - "sshkey.......................................{{ ssh_key_name }}"
 # 3. Install the installer
 # -----------------------------------------------------------------------------
 - name: "ipi : Check ocp_installer_dir"
@@ -121,6 +140,13 @@
     dest: "{{ ipi_config_dir }}/install-config.yaml"
     mode: '644'
 
+- name: "ipi : Build the install-config.yaml for gcp"
+  when: ipi_platform == "gcp"
+  ansible.builtin.template:
+    src: gcp-ipi/install-config.yaml.j2
+    dest: "{{ ipi_config_dir }}/install-config.yaml"
+    mode: '644'
+   
 
 # 5. Create Cluster
 # -----------------------------------------------------------------------------
